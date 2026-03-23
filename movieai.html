@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineMatch Pro | AI Neural SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.8);
+            --accent: #6366f1;
+            --secondary: #a855f7;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: rgba(0,0,0,0.05);
+            --shadow: 0 10px 30px -5px rgba(0,0,0,0.05);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%); 
+            color: var(--text); display: flex; height: 100vh; overflow: hidden; 
+        }
+
+        /* Sidebar */
+        .sidebar { 
+            width: 280px; background: var(--glass); backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border); padding: 35px; overflow-y: auto;
+        }
+        .logo { font-size: 1.6rem; font-weight: 800; margin-bottom: 40px; color: var(--accent); }
+        .nav-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin: 20px 0 10px; display: block; }
+        .nav-btn { 
+            width: 100%; padding: 12px 16px; margin-bottom: 5px; background: transparent; 
+            border: none; color: var(--muted); text-align: left; cursor: pointer; 
+            border-radius: 12px; transition: 0.3s; font-weight: 500;
+        }
+        .nav-btn:hover, .nav-btn.active { background: white; color: var(--accent); box-shadow: var(--shadow); }
+
+        /* Main */
+        .main { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
+        .topbar { display: flex; gap: 15px; margin-bottom: 35px; }
+        .search-box { 
+            flex: 1; background: white; border: 1px solid var(--border); 
+            border-radius: 16px; padding: 14px 24px; box-shadow: var(--shadow);
+        }
+        .search-box input { border: none; outline: none; width: 100%; font-size: 1rem; color: var(--text); }
+
+        /* Quiz UI */
+        #quizOverlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px); z-index: 2000; display: none;
+            align-items: center; justify-content: center;
+        }
+        .quiz-modal { 
+            width: 500px; padding: 50px; background: white; border-radius: 32px; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1); text-align: center;
+        }
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
+        .opt-card { 
+            padding: 18px; border: 1px solid #f1f5f9; border-radius: 16px; 
+            cursor: pointer; transition: 0.3s; font-weight: 600; font-size: 0.9rem;
+        }
+        .opt-card:hover { border-color: var(--accent); background: #f5f3ff; color: var(--accent); }
+
+        /* Hero */
+        .hero { 
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            border-radius: 24px; padding: 40px; color: white; margin-bottom: 40px;
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+        }
+        .hero button { background: white; color: var(--accent); border: none; padding: 14px 28px; border-radius: 14px; font-weight: 800; cursor: pointer; }
+
+        /* Grid & Cards */
+        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; }
+        .m-card { background: white; border-radius: 24px; overflow: hidden; transition: 0.4s; cursor: pointer; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        .m-card:hover { transform: translateY(-8px); box-shadow: 0 20px 30px rgba(0,0,0,0.08); }
+        .m-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+        .m-info { padding: 18px; }
+        .m-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Loader */
+        .loader { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="quizOverlay">
+    <div class="quiz-modal" id="quizContent"></div>
+</div>
+
+<div class="sidebar">
+    <div class="logo">CineMatch AI</div>
+    <span class="nav-label">Neural Engine</span>
+    <button class="nav-btn active" onclick="fetchMovies('Popular')">🔥 Trending</button>
+    <button class="nav-btn" onclick="fetchMovies('2026')">🆕 2026 New</button>
+    <span class="nav-label">Global Cinema</span>
+    <button class="nav-btn" onclick="fetchMovies('Hollywood')">🇺🇸 Hollywood</button>
+    <button class="nav-btn" onclick="fetchMovies('Bollywood')">🇮🇳 Bollywood</button>
+    <span class="nav-label">Universes</span>
+    <button class="nav-btn" onclick="fetchMovies('Marvel')">🦸 Marvel</button>
+    <button class="nav-btn" onclick="fetchMovies('Disney')">🏰 Disney</button>
+    <button class="nav-btn" onclick="fetchMovies('Anime')">⛩️ Anime</button>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div class="search-box">
+            <input type="text" id="aiSearch" placeholder="Search vibes, actors, or titles...">
+        </div>
+    </div>
+
+    <div class="hero">
+        <div>
+            <h1 style="margin-bottom: 10px;">Find your movie match.</h1>
+            <p style="opacity: 0.9;">Take the Neural Quiz for AI-powered picks.</p>
+        </div>
+        <button onclick="launchQuiz()">Start Quiz 🎲</button>
+    </div>
+
+    <h2 id="gridTitle" style="margin-bottom: 25px; font-weight: 800;">Top Picks</h2>
+    <div class="movie-grid" id="movieGrid"></div>
+</div>
+
+<script>
+    const OMDB_KEY = "7ee8456a"; // 🔑 Put your Key Here
+    const grid = document.getElementById('movieGrid');
+    const quizOverlay = document.getElementById('quizOverlay');
+
+    const steps = [
+        { t: "Choose Vibe", s: "Industry focus?", opts: [{l:"Hollywood 🇺🇸", v:"Hollywood"}, {l:"Bollywood 🇮🇳", v:"Bollywood"}, {l:"Anime ⛩️", v:"Anime"}, {l:"Superhero 🦸", v:"Superhero"}] },
+        { t: "Language", s: "Preferred audio?", opts: [{l:"English", v:"English"}, {l:"Hindi", v:"Hindi"}, {l:"Surprise Me", v:""}] },
+        { t: "Universe", s: "Specific Studio?", opts: [{l:"Disney 🏰", v:"Disney"}, {l:"Marvel 🛡️", v:"Marvel"}, {l:"Classic 🎞️", v:"Classic"}, {l:"None", v:""}] }
+    ];
+
+    let currentStep = 0, userChoices = [];
+
+    function launchQuiz() { quizOverlay.style.display = "flex"; currentStep = 0; userChoices = []; renderStep(); }
+
+    function renderStep() {
+        const s = steps[currentStep];
+        document.getElementById('quizContent').innerHTML = `
+            <h2>${s.t}</h2><p style="color:var(--muted)">${s.s}</p>
+            <div class="opt-grid">${s.opts.map(o => `<div class="opt-card" onclick="selectOption('${o.v}')">${o.l}</div>`).join('')}</div>
+        `;
+    }
+
+    function selectOption(val) {
+        if(val) userChoices.push(val);
+        currentStep++;
+        currentStep < steps.length ? renderStep() : completeQuiz();
+    }
+
+    function completeQuiz() {
+        quizOverlay.style.display = "none";
+        fetchMovies(userChoices.join(' '), "AI Neural Match");
+    }
+
+    async function fetchMovies(query, title = "Trending") {
+        document.getElementById('gridTitle').innerText = title;
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 50px;"><div class="loader"></div></div>`;
+        
+        try {
+            // STEP 1: Full Search
+            let res = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&s=${query}`);
+            let data = await res.json();
+
+            // STEP 2: Smart Fallback (If too specific, broaden it)
+            if (data.Response === "False") {
+                const words = query.split(' ');
+                const broadQuery = words[words.length - 1] || words[0]; // Try last keyword (Universe) or first
+                res = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&s=${broadQuery}`);
+                data = await res.json();
+                document.getElementById('gridTitle').innerText = `AI Broadened Match: ${broadQuery}`;
+            }
+
+            if(data.Search) {
+                grid.innerHTML = data.Search.map(m => `
+                    <div class="m-card">
+                        <img src="${m.Poster !== 'N/A' ? m.Poster : 'https://via.placeholder.com/400x600'}">
+                        <div class="m-info"><div class="m-title">${m.Title}</div>
+                        <div style="color:var(--muted); font-size: 0.8rem;">${m.Year} • ${m.Type.toUpperCase()}</div></div>
+                    </div>
+                `).join('');
+            } else {
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center;">No results. Try another vibe!</div>`;
+            }
+        } catch(e) { grid.innerHTML = "Sync Error."; }
+    }
+
+    document.getElementById('aiSearch').addEventListener('keydown', e => {
+        if(e.key === 'Enter') fetchMovies(e.target.value, `Results: ${e.target.value}`);
+    });
+
+    fetchMovies('Marvel');
+</script>
+</body>
+</html>
